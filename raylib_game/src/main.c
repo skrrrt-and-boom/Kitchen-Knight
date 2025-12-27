@@ -43,12 +43,13 @@ int main(void) {
     DrawGame(&game);
     EndMode3D();
 
-    // HUD
-    DrawFPS(10, 10);
-    DrawText("WASD - Move | Mouse - Look | ESC - Quit", 10, 40, 20, LIGHTGRAY);
-    DrawText(TextFormat("Pos: (%.1f, %.1f, %.1f)", game.playerPos.x,
-                        game.playerPos.y, game.playerPos.z),
-             10, SCREEN_HEIGHT - 30, 20, GREEN);
+    // Combat HUD (crosshair, health bars, etc.)
+    DrawGameUI(&game);
+
+    // Debug info
+    DrawFPS(10, SCREEN_HEIGHT - 60);
+    DrawText("WASD - Move | Mouse - Look | LMB - Attack | ESC - Quit", 10,
+             SCREEN_HEIGHT - 30, 16, LIGHTGRAY);
 
     EndDrawing();
   }

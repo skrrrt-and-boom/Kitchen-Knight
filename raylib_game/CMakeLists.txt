@@ -14,6 +14,11 @@ set(SOURCES
     src/player.c
     src/enemy.c
     src/arena.c
+    src/combat.c
+    src/enemies/enemy_types.c
+    src/map_loader.c
+    src/particles.c
+    src/audio.c
 )
 
 # Create executable

@@ -70,12 +70,12 @@ void UpdatePlayer(GameState *game) {
     moveDir.z -= forward.z;
   }
   if (IsKeyDown(KEY_A)) {
-    moveDir.x -= right.x;
-    moveDir.z -= right.z;
-  }
-  if (IsKeyDown(KEY_D)) {
     moveDir.x += right.x;
     moveDir.z += right.z;
+  }
+  if (IsKeyDown(KEY_D)) {
+    moveDir.x -= right.x;
+    moveDir.z -= right.z;
   }
 
   // Normalize if moving diagonally
