@@ -12,8 +12,9 @@ static bool audioInitialized = false;
 static Music currentMusic = {0};
 static bool musicPlaying = false;
 
-// TODO: Add sound effects when assets are available
-// static Sound sounds[SFX_COUNT];
+// SFX Pool
+static Sound sounds[SFX_COUNT];
+static bool soundsLoaded[SFX_COUNT];
 
 // ==========================================
 // INITIALIZATION
@@ -24,11 +25,25 @@ void InitAudioSystem(void) {
   audioInitialized = true;
   printf("[Audio] Audio device initialized\n");
 
-  // TODO: Load sound effects
-  // sounds[SFX_ATTACK_MELEE] = LoadSound("assets/sfx/whoosh.wav");
-  // sounds[SFX_HIT_ENEMY] = LoadSound("assets/sfx/hit.wav");
-  // sounds[SFX_ENEMY_DEATH] = LoadSound("assets/sfx/explosion.wav");
-  // sounds[SFX_PLAYER_HURT] = LoadSound("assets/sfx/oof.wav");
+  // Load sound effects (will fail gracefully if files missing)
+  const char *sfxFiles[] = {
+      "assets/sfx_whoosh.wav",    // SFX_ATTACK_MELEE
+      "assets/sfx_splat.wav",     // SFX_ATTACK_RANGED
+      "assets/sfx_hit.wav",       // SFX_HIT_ENEMY
+      "assets/sfx_oof.wav",       // SFX_PLAYER_HURT
+      "assets/sfx_explosion.wav", // SFX_ENEMY_DEATH
+      "assets/sfx_pickup.wav"     // SFX_PICKUP
+  };
+
+  for (int i = 0; i < SFX_COUNT; i++) {
+    sounds[i] = LoadSound(sfxFiles[i]);
+    if (sounds[i].frameCount > 0) {
+      soundsLoaded[i] = true;
+      printf("[Audio] Loaded SFX: %s\n", sfxFiles[i]);
+    } else {
+      soundsLoaded[i] = false;
+    }
+  }
 }
 
 // ==========================================
@@ -39,16 +54,15 @@ void PlaySFX(SFXType type) {
   if (!audioInitialized)
     return;
 
-  // TODO: Play actual sounds when available
-  // if (type < SFX_COUNT && sounds[type].frameCount > 0) {
-  //     PlaySound(sounds[type]);
-  // }
-
-  // Debug output (remove when sounds are implemented)
-  const char *names[] = {"ATTACK_MELEE", "ATTACK_RANGED", "HIT_ENEMY",
-                         "PLAYER_HURT",  "ENEMY_DEATH",   "PICKUP"};
-  if (type < SFX_COUNT) {
-    printf("[Audio] Play SFX: %s (stub)\n", names[type]);
+  if (type < SFX_COUNT && soundsLoaded[type]) {
+    PlaySound(sounds[type]);
+  } else {
+    // Debug output if sound not found
+    const char *names[] = {"ATTACK_MELEE", "ATTACK_RANGED", "HIT_ENEMY",
+                           "PLAYER_HURT",  "ENEMY_DEATH",   "PICKUP"};
+    if (type < SFX_COUNT) {
+      printf("[Audio] Play SFX: %s (file missing)\n", names[type]);
+    }
   }
 }
 
@@ -98,12 +112,12 @@ void UnloadAudioSystem(void) {
 
   StopMusic();
 
-  // TODO: Unload sound effects
-  // for (int i = 0; i < SFX_COUNT; i++) {
-  //     if (sounds[i].frameCount > 0) {
-  //         UnloadSound(sounds[i]);
-  //     }
-  // }
+  // Unload sound effects
+  for (int i = 0; i < SFX_COUNT; i++) {
+    if (soundsLoaded[i]) {
+      UnloadSound(sounds[i]);
+    }
+  }
 
   CloseAudioDevice();
   audioInitialized = false;

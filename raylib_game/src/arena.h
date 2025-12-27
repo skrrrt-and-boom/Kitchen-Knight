@@ -9,6 +9,12 @@
 
 #include "game.h"
 
+// Initialize arena assets (textures, etc.)
+void InitArena(void);
+
+// Unload arena assets
+void UnloadArena(void);
+
 // Draw the complete arena (floor + walls)
 void DrawArena(void);
 

@@ -16,6 +16,8 @@ int activeEnemyCount = 0;
 
 // --- Textures ---
 static Texture2D toasterTexture;
+static Texture2D blenderTexture;
+static Texture2D microwaveTexture;
 static bool texturesLoaded = false;
 
 // --- Helpers ---
@@ -41,10 +43,17 @@ void InitEnemySystem(void) {
 
   // Load textures
   toasterTexture = LoadTexture("assets/toster.png");
-  if (toasterTexture.id > 0) {
+  blenderTexture = LoadTexture("assets/blender_sprite.png");
+  microwaveTexture = LoadTexture("assets/microwave_sprite.png");
+
+  if (toasterTexture.id > 0 || blenderTexture.id > 0 ||
+      microwaveTexture.id > 0) {
     texturesLoaded = true;
-    printf("[EnemySystem] Loaded toaster texture: %dx%d\n",
-           toasterTexture.width, toasterTexture.height);
+    printf("[EnemySystem] Textures loaded (Toaster: %s, Blender: %s, "
+           "Microwave: %s)\n",
+           toasterTexture.id > 0 ? "OK" : "FAIL",
+           blenderTexture.id > 0 ? "OK" : "FAIL",
+           microwaveTexture.id > 0 ? "OK" : "FAIL");
   }
 }
 
@@ -253,11 +262,26 @@ void DrawEnemies(const GameState *game) {
       drawColor = RED;
     }
 
-    if (texturesLoaded && enemy->type == ENEMY_TOASTER) {
-      BeginBlendMode(BLEND_ALPHA);
-      DrawBillboard(game->camera, toasterTexture, enemy->position, 4.0f,
-                    drawColor);
-      EndBlendMode();
+    if (texturesLoaded) {
+      Texture2D *tex = NULL;
+      if (enemy->type == ENEMY_TOASTER && toasterTexture.id > 0)
+        tex = &toasterTexture;
+      else if (enemy->type == ENEMY_BLENDER && blenderTexture.id > 0)
+        tex = &blenderTexture;
+      else if (enemy->type == ENEMY_MICROWAVE && microwaveTexture.id > 0)
+        tex = &microwaveTexture;
+
+      if (tex) {
+        BeginBlendMode(BLEND_ALPHA);
+        DrawBillboard(game->camera, *tex, enemy->position, 4.0f, drawColor);
+        EndBlendMode();
+      } else {
+        // Fallback cube rendering if texture failed
+        DrawCube(enemy->position, ENEMY_WIDTH, ENEMY_HEIGHT, ENEMY_DEPTH,
+                 drawColor);
+        DrawCubeWires(enemy->position, ENEMY_WIDTH, ENEMY_HEIGHT, ENEMY_DEPTH,
+                      BLACK);
+      }
     } else {
       // Fallback cube rendering
       DrawCube(enemy->position, ENEMY_WIDTH, ENEMY_HEIGHT, ENEMY_DEPTH,

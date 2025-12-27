@@ -21,6 +21,9 @@ void InitGame(GameState *game) {
   // Initialize audio system
   InitAudioSystem();
 
+  // Initialize arena assets
+  InitArena();
+
   // Initialize enemy pool system
   InitEnemySystem();
 
@@ -151,6 +154,7 @@ void DrawGameUI(const GameState *game) {
 
 void CleanupGame(GameState *game) {
   UnloadCombat();
+  UnloadArena();
   UnloadAudioSystem();
   (void)game;
 }

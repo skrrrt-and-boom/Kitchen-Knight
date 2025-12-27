@@ -18,8 +18,9 @@ static Projectile projectilePool[MAX_PROJECTILES];
 static float shakeTimer = 0.0f;
 static float shakeIntensity = 0.0f;
 
-// Toaster sprite for billboard rendering
+// Textures for rendering
 static Texture2D toasterTexture;
+static Texture2D spatulaTexture;
 static bool texturesLoaded = false;
 
 // ==========================================
@@ -43,10 +44,15 @@ void InitCombat(void) {
 
   // Load textures
   toasterTexture = LoadTexture("assets/toster.png");
-  if (toasterTexture.id > 0) {
+  spatulaTexture = LoadTexture("assets/spatula_hand.png");
+
+  if (toasterTexture.id > 0 && spatulaTexture.id > 0) {
     texturesLoaded = true;
-    printf("[Combat] Loaded toaster texture: %dx%d\n", toasterTexture.width,
-           toasterTexture.height);
+    printf("[Combat] Loaded textures: toaster and spatula\n");
+  } else if (toasterTexture.id > 0) {
+    texturesLoaded =
+        true; // Still allow toaster if only that loaded for some reason
+    printf("[Combat] Loaded toaster texture but spatula failed\n");
   }
 }
 
@@ -259,8 +265,23 @@ void DrawCombatUI(const GameState *game) {
                                "EGG LAUNCHER"};
   const char *name = weaponNames[currentWeapon.type];
   int textWidth = MeasureText(name, 20);
-  DrawText(name, cx - textWidth / 2, GetScreenHeight() - 80, 20, WHITE);
-  DrawText("[1] [2] [3] [4]", cx - 60, GetScreenHeight() - 55, 16, GRAY);
+  DrawText(name, cx - textWidth / 2, GetScreenHeight() - 100, 20, WHITE);
+  DrawText("[1] [2] [3] [4]", cx - 60, GetScreenHeight() - 75, 16, GRAY);
+
+  // Draw weapon sprite if it's the spatula
+  if (currentWeapon.type == WEAPON_SPATULA && texturesLoaded &&
+      spatulaTexture.id > 0) {
+    float scale = 0.5f;
+    int posX = GetScreenWidth() - (int)(spatulaTexture.width * scale) - 20;
+    int posY = GetScreenHeight() - (int)(spatulaTexture.height * scale);
+
+    // Subtle bobbing animation
+    float bobOffset = sinf(GetTime() * 5.0f) * 10.0f;
+
+    DrawTextureEx(spatulaTexture,
+                  (Vector2){(float)posX, (float)posY + bobOffset}, 0.0f, scale,
+                  WHITE);
+  }
 
   // Player health bar (top left)
   DrawRectangle(20, 20, 200, 20, DARKGRAY);
@@ -285,5 +306,6 @@ void DrawCombatUI(const GameState *game) {
 void UnloadCombat(void) {
   if (texturesLoaded) {
     UnloadTexture(toasterTexture);
+    UnloadTexture(spatulaTexture);
   }
 }

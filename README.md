@@ -1,6 +1,6 @@
 # Kitchen Knight 3D 🎮⚔️
 
-A Doom-style first-person 3D game built with **Raylib** in C. Features an AI-controlled enemy that chases the player around an arena.
+A Doom-style first-person 3D game built with **Raylib** in C. Battle rogue kitchen appliances with an arsenal of cooking-themed weapons!
 
 ![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows%20%7C%20Linux-blue)
 ![Language](https://img.shields.io/badge/Language-C11-green)
@@ -11,9 +11,13 @@ A Doom-style first-person 3D game built with **Raylib** in C. Features an AI-con
 ## 🎮 Game Features
 
 - **First-person 3D controls** (WASD + mouse look)
-- **AI enemy** that chases the player using grid-based pathfinding
-- **Arena environment** with floor and walls
-- **Collision detection** to keep player within bounds
+- **Combat system** with melee and ranged weapons
+- **4 Kitchen-themed weapons** (Spatula, Frying Pan, Ketchup Gun, Egg Launcher)
+- **Multiple enemy types** (Toasters, Blenders, Microwaves)
+- **Enemy AI** with chase, attack, and hurt states
+- **Particle effects** (explosions, hit sparks)
+- **Billboard sprite rendering** for 2.5D visual style
+- **ASCII map loading** for easy level creation
 - **Cross-platform** - runs on macOS, Windows, and Linux
 
 ---
@@ -22,32 +26,28 @@ A Doom-style first-person 3D game built with **Raylib** in C. Features an AI-con
 
 ```
 KitchenKnight/
-├── README.md               # This file
-├── .gitignore              # Git ignore rules
-└── raylib_game/            # Main C project
-    ├── CMakeLists.txt      # CMake build configuration
-    ├── src/
-    │   ├── main.c          # Entry point, game loop, window setup
-    │   ├── game.h          # Game state structure & constants
-    │   ├── game.c          # Core game logic (init, update, draw)
-    │   ├── player.h        # Player controller interface
-    │   ├── player.c        # First-person movement & camera
-    │   ├── enemy.h         # Enemy AI interface
-    │   ├── enemy.c         # Chase AI & enemy rendering
-    │   ├── arena.h         # Arena interface
-    │   └── arena.c         # Floor & walls rendering
-    └── build/              # Build output (generated)
+├── README.md                   # This file
+├── .gitignore                  # Git ignore rules
+└── raylib_game/                # Main C project
+    ├── CMakeLists.txt          # CMake build configuration
+    ├── assets/
+    │   ├── knight.png          # Player sprite
+    │   ├── toster.png          # Toaster enemy sprite
+    │   └── levels/
+    │       └── level1.txt      # Sample ASCII level
+    └── src/
+        ├── main.c              # Entry point, game loop
+        ├── game.h/c            # Game state, init, update, draw
+        ├── player.h/c          # FPS movement & camera
+        ├── enemy.h/c           # Legacy single enemy AI
+        ├── enemies/
+        │   └── enemy_types.h/c # Enemy pool system & AI states
+        ├── arena.h/c           # Floor & walls rendering
+        ├── combat.h/c          # Weapons, hit detection, projectiles
+        ├── map_loader.h/c      # ASCII map parsing
+        ├── particles.h/c       # Visual effects system
+        └── audio.h/c           # Sound management (stubs)
 ```
-
-### File Descriptions
-
-| File | Purpose |
-|------|---------|
-| `main.c` | Window initialization, main game loop, HUD rendering |
-| `game.h/c` | Central game state, constants (arena size, speeds, etc.) |
-| `player.h/c` | WASD movement, mouse look, wall collisions |
-| `enemy.h/c` | AI that converts positions to grid, chooses movement |
-| `arena.h/c` | Draws floor (green) and 4 walls (brown) |
 
 ---
 
@@ -63,21 +63,17 @@ KitchenKnight/
 
 ### 🍎 macOS
 
-#### 1. Install Dependencies
 ```bash
+# Install dependencies
 brew install raylib cmake
-```
 
-#### 2. Build
-```bash
+# Build
 cd KitchenKnight/raylib_game
 mkdir -p build && cd build
 cmake ..
 make
-```
 
-#### 3. Run
-```bash
+# Run
 ./kitchen_knight
 ```
 
@@ -85,23 +81,17 @@ make
 
 ### 🪟 Windows (MinGW)
 
-#### 1. Install Dependencies
-- Download and install [MSYS2](https://www.msys2.org/)
-- Open MSYS2 terminal and run:
 ```bash
+# Install via MSYS2
 pacman -S mingw-w64-x86_64-raylib mingw-w64-x86_64-cmake mingw-w64-x86_64-gcc
-```
 
-#### 2. Build
-```bash
+# Build
 cd KitchenKnight/raylib_game
 mkdir build && cd build
 cmake .. -G "MinGW Makefiles"
 cmake --build .
-```
 
-#### 3. Run
-```bash
+# Run
 ./kitchen_knight.exe
 ```
 
@@ -109,23 +99,17 @@ cmake --build .
 
 ### 🪟 Windows (Visual Studio)
 
-#### 1. Install Dependencies
-- Install [Visual Studio](https://visualstudio.microsoft.com/) with C++ workload
-- Install [vcpkg](https://vcpkg.io/) and run:
 ```cmd
+# Install vcpkg and raylib
 vcpkg install raylib:x64-windows
-```
 
-#### 2. Build
-```cmd
+# Build
 cd KitchenKnight\raylib_game
 mkdir build && cd build
 cmake .. -DCMAKE_TOOLCHAIN_FILE=[vcpkg-root]/scripts/buildsystems/vcpkg.cmake
 cmake --build . --config Release
-```
 
-#### 3. Run
-```cmd
+# Run
 Release\kitchen_knight.exe
 ```
 
@@ -133,7 +117,6 @@ Release\kitchen_knight.exe
 
 ### 🐧 Linux
 
-#### 1. Install Dependencies
 ```bash
 # Ubuntu/Debian
 sudo apt install libraylib-dev cmake build-essential
@@ -141,21 +124,7 @@ sudo apt install libraylib-dev cmake build-essential
 # Arch
 sudo pacman -S raylib cmake base-devel
 
-# Fedora
-sudo dnf install raylib-devel cmake gcc
-```
-
-#### 2. Build
-```bash
-cd KitchenKnight/raylib_game
-mkdir -p build && cd build
-cmake ..
-make
-```
-
-#### 3. Run
-```bash
-./kitchen_knight
+# Build & Run (same as macOS)
 ```
 
 ---
@@ -164,51 +133,100 @@ make
 
 | Key | Action |
 |-----|--------|
-| **W** | Move forward |
-| **S** | Move backward |
-| **A** | Strafe left |
-| **D** | Strafe right |
+| **W/S** | Move forward/backward |
+| **A/D** | Strafe left/right |
 | **Mouse** | Look around |
+| **LMB** | Attack |
+| **1** | Equip Spatula (fast melee) |
+| **2** | Equip Frying Pan (heavy melee) |
+| **3** | Equip Ketchup Gun (rapid ranged) |
+| **4** | Equip Egg Launcher (explosive) |
 | **P** | Pause/Unpause |
 | **ESC** | Quit game |
 
 ---
 
-## 🔧 Game Constants
+## ⚔️ Weapons
 
-These can be adjusted in `src/game.h`:
-
-| Constant | Default | Description |
-|----------|---------|-------------|
-| `ARENA_SIZE` | 50.0 | Width/depth of the play area |
-| `PLAYER_SPEED` | 10.0 | Player movement speed |
-| `ENEMY_SPEED` | 3.0 | Enemy chase speed |
-| `MOUSE_SENSITIVITY` | 0.003 | Mouse look sensitivity |
-| `GRID_SIZE` | 10 | AI grid resolution (10x10) |
+| Weapon | Type | Damage | Cooldown | Special |
+|--------|------|--------|----------|---------|
+| Spatula | Melee | 10 | 0.4s | Fast attacks |
+| Frying Pan | Melee | 25 | 0.8s | High damage |
+| Ketchup Gun | Ranged | 8 | 0.2s | Rapid fire |
+| Egg Launcher | Ranged | 40 | 1.2s | Explosive |
 
 ---
 
-## 🧠 AI System
+## 🔧 Game Constants
 
-The enemy uses a simple **grid-based chase algorithm**:
+Adjust in `src/game.h`:
 
-1. Convert world positions to 10x10 grid coordinates
-2. Compare enemy grid position to player grid position  
-3. Move toward player on the axis with larger difference
-4. Repeat each frame
+| Constant | Default | Description |
+|----------|---------|-------------|
+| `ARENA_SIZE` | 50.0 | Play area size |
+| `PLAYER_SPEED` | 10.0 | Movement speed |
+| `ENEMY_SPEED` | 3.0 | Enemy chase speed |
+| `MAX_ENEMIES` | 64 | Enemy pool size |
 
-The grid system is designed to be compatible with trained neural network models (via ONNX) for future enhancement.
+---
+
+## 🗺️ Level Format
+
+Create levels in `assets/levels/` using ASCII:
+
+```
+####################
+#..................#
+#..T...............#
+#.........#####....#
+#.........#.S.#....#
+#.........#####....#
+#............T.....#
+####################
+```
+
+| Symbol | Meaning |
+|--------|---------|
+| `#` | Wall |
+| `.` | Floor |
+| `S` | Player start |
+| `T` | Toaster spawn |
+| `B` | Blender spawn |
+| `M` | Microwave spawn |
+| `H` | Health pickup |
+
+---
+
+## 🧠 Enemy AI
+
+Enemies use a state machine:
+- **IDLE** → Waits for player proximity
+- **CHASE** → Moves toward player
+- **ATTACK** → Wind-up and attack
+- **HURT** → Brief stun when damaged
+- **DEAD** → Removed from play
+
+---
+
+## 📦 Implementation Status
+
+- [x] **Phase 1**: Combat Foundation (weapons, hit detection, projectiles)
+- [x] **Phase 2**: Enemy System (pool, AI states, multiple types)
+- [x] **Phase 3**: Map System (ASCII loading, level generation)
+- [x] **Phase 4**: Polish (particles, screen shake)
+- [x] **Phase 5**: Audio (stubs ready for sound files)
+- [x] **Phase 6**: UI (weapon switching, HUD indicators)
 
 ---
 
 ## 🚀 Future Enhancements
 
-- [ ] ONNX integration for trained PPO model
-- [ ] Texture support for more detailed visuals
-- [ ] Sound effects and music
-- [ ] Multiple enemy types
-- [ ] Weapons and combat system
-- [ ] Level loading from files
+- [ ] Sound effects (whoosh, splat, explosion)
+- [ ] Music tracks
+- [ ] More enemy types
+- [ ] Power-ups and pickups
+- [ ] Multiple levels
+- [ ] Boss battles
 
 ---
 
@@ -220,5 +238,5 @@ MIT License - feel free to use and modify!
 
 ## 🤝 Credits
 
-- **Raylib** - Simple and easy-to-use game library by Ramon Santamaria
-- Built with assistance from AI pair programming
+- **Raylib** - Simple game library by Ramon Santamaria
+- Built with AI pair programming

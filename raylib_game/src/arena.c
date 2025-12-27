@@ -5,21 +5,54 @@
  */
 
 #include "arena.h"
+#include <stdio.h>
 
 // Colors (matching Python version)
 static const Color FLOOR_COLOR = {80, 140, 80, 255}; // Green
 static const Color WALL_COLOR = {160, 100, 60, 255}; // Brown
+
+static Texture2D floorTexture;
+static Model floorModel;
+static bool arenaAssetsLoaded = false;
+
+// ==========================================
+// INITIALIZATION
+// ==========================================
+
+void InitArena(void) {
+  floorTexture = LoadTexture("assets/tile_floor.png");
+  if (floorTexture.id > 0) {
+    // Create a model for the floor
+    Mesh mesh = GenMeshCube(ARENA_SIZE, 0.1f, ARENA_SIZE);
+    floorModel = LoadModelFromMesh(mesh);
+    // Assign texture to model
+    floorModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = floorTexture;
+
+    arenaAssetsLoaded = true;
+    printf("[Arena] Loaded floor texture and created model\n");
+  }
+}
+
+void UnloadArena(void) {
+  if (arenaAssetsLoaded) {
+    UnloadModel(floorModel);
+    UnloadTexture(floorTexture);
+  }
+}
 
 // ==========================================
 // FLOOR
 // ==========================================
 
 void DrawFloor(void) {
-  // Draw a large plane at y=0
-  // Size matches Python: 50x50 units
-  DrawPlane((Vector3){0.0f, 0.0f, 0.0f},       // Center position
-            (Vector2){ARENA_SIZE, ARENA_SIZE}, // Size
-            FLOOR_COLOR);
+  if (arenaAssetsLoaded) {
+    // Draw the textured floor model
+    DrawModel(floorModel, (Vector3){0.0f, -0.05f, 0.0f}, 1.0f, WHITE);
+  } else {
+    // Fallback to plane if texture not loaded
+    DrawPlane((Vector3){0.0f, 0.0f, 0.0f}, (Vector2){ARENA_SIZE, ARENA_SIZE},
+              FLOOR_COLOR);
+  }
 }
 
 // ==========================================
