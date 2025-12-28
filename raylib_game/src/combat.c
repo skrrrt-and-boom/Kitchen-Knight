@@ -8,6 +8,7 @@
 #include "audio.h"
 #include "particles.h"
 #include "raymath.h"
+#include "enemies/enemy_types.h"
 #include <stdio.h>
 
 // --- Global State ---
@@ -111,17 +112,33 @@ void UpdateCombat(GameState *game, float dt) {
     shakeIntensity = 3.0f;
 
     if (!currentWeapon.isRanged) {
-      // Melee: Raycast hit detection
+      // Melee: Raycast hit detection against legacy enemy
       if (CheckMeleeHit(game)) {
-        printf("[Combat] HIT! Enemy HP: %d -> %d\n", game->enemyHP,
+        printf("[Combat] HIT! Legacy enemy HP: %d -> %d\n", game->enemyHP,
                game->enemyHP - currentWeapon.damage);
-
         game->enemyHP -= currentWeapon.damage;
-
-        // Death check
         if (game->enemyHP <= 0) {
           game->enemyActive = false;
-          printf("[Combat] ENEMY DESTROYED!\n");
+          printf("[Combat] LEGACY ENEMY DESTROYED!\n");
+        }
+      }
+
+      // Melee: Raycast hit detection against pool
+      for (int i = 0; i < MAX_ENEMIES; i++) {
+        if (!(enemyPool[i].flags & ENEMY_FLAG_ACTIVE))
+          continue;
+
+        Ray attackRay = {.position = game->camera.position,
+                         .direction = Vector3Normalize(Vector3Subtract(
+                             game->camera.target, game->camera.position))};
+        RayCollision col = GetRayCollisionSphere(
+            attackRay, enemyPool[i].position, enemyPool[i].radius);
+
+        if (col.hit && col.distance <= currentWeapon.range) {
+          DamageEnemy(i, currentWeapon.damage);
+          // Only hit the first one for melee (or closest)
+          // For simplicity, we break here after one hit
+          break;
         }
       }
     } else {
@@ -146,8 +163,22 @@ void UpdateCombat(GameState *game, float dt) {
       projectilePool[i].active = false;
     }
 
-    // Check collision with enemy
-    if (game->enemyActive) {
+    // Check collision with enemy from pool
+    for (int j = 0; j < MAX_ENEMIES; j++) {
+      if (!(enemyPool[j].flags & ENEMY_FLAG_ACTIVE))
+        continue;
+
+      float dist =
+          Vector3Distance(projectilePool[i].position, enemyPool[j].position);
+      if (dist < enemyPool[j].radius) {
+        DamageEnemy(j, projectilePool[i].damage);
+        projectilePool[i].active = false;
+        break; // Projectile destroyed
+      }
+    }
+
+    // Check collision with legacy enemy
+    if (projectilePool[i].active && game->enemyActive) {
       float dist = Vector3Distance(projectilePool[i].position, game->enemyPos);
       if (dist < ENEMY_WIDTH) {
         game->enemyHP -= projectilePool[i].damage;
@@ -155,7 +186,7 @@ void UpdateCombat(GameState *game, float dt) {
 
         if (game->enemyHP <= 0) {
           game->enemyActive = false;
-          printf("[Combat] ENEMY DESTROYED by projectile!\n");
+          printf("[Combat] LEGACY ENEMY DESTROYED by projectile!\n");
         }
       }
     }
